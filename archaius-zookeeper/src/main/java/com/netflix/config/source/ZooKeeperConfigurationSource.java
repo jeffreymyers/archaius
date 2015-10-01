@@ -16,6 +16,7 @@
 package com.netflix.config.source;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
@@ -218,10 +219,15 @@ public class ZooKeeperConfigurationSource implements WatchedConfigurationSource,
             client.delete().forPath(path);        
         } catch (NoNodeException exc) {
         	// Node doesn't exist - NoOp
+            logger.warn("Node doesn't exist", exc);
         }
     }
     
     public void close() {
-    	Closeables.closeQuietly(pathChildrenCache);
+        try {
+            Closeables.close(pathChildrenCache, true);
+        } catch (IOException exc) {
+            logger.error("IOException should not have been thrown.", exc);
+        }
     }
 }
